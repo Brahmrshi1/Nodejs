@@ -1,40 +1,35 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+var http = require('http');
+var fs = require('fs');
+var url = require('url');
 
-// create express app
-const app = express();
+// Create a server
+http.createServer( function (request, response) {  
+   // Parse the request containing file name
+   var pathname = url.parse(request.url).pathname;
+   
+   // Print the name of the file for which request is made.
+   console.log("Request for " + pathname + " received.");
+   
+   // Read the requested file content from file system
+   fs.readFile(pathname.substr(1), function (err, data) {
+      if (err) {
+         console.log(err);
+         // HTTP Status: 404 : NOT FOUND
+         // Content Type: text/plain
+         response.writeHead(404, {'Content-Type': 'text/html'});
+      }else {	
+         //Page found	  
+         // HTTP Status: 200 : OK
+         // Content Type: text/plain
+         response.writeHead(200, {'Content-Type': 'text/html'});	
+         
+         // Write the content of the file to response body
+         response.write(data.toString());		
+      }
+      // Send the response body 
+      response.end();
+   });   
+}).listen(3000);
 
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }))
-
-// parse requests of content-type - application/json
-app.use(bodyParser.json())
-
-
-                        // Configuring the database
-                    const dbConfig = require('./config/database.config.js');
-                    const mongoose = require('mongoose');
-
-                    mongoose.Promise = global.Promise;
-
-                    // Connecting to the database
-                    mongoose.connect(dbConfig.url, {
-                        useNewUrlParser: true
-                    }).then(() => {
-                        console.log("Successfully connected to the database");    
-                    }).catch(err => {
-                        console.log('Could not connect to the database. Exiting now...', err);
-                        process.exit();
-                    });
-
-// define a simple route
-app.get('/', (req, res) => {
-    res.json({"message": "Welcome to EasyNotes application. Take notes quickly. Organize and keep track of all your notes."});
-});
-            // Require Notes routes
-               require('./app/route/note.route.js')(app);
-
-// listen for requests
-app.listen(3000, () => {
-    console.log("Server is listening on port 3000");
-}); 
+// Console will print the message
+console.log('Server running at http://127.0.0.1:3000/');
